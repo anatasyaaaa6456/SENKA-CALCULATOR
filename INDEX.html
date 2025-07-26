@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Senka Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fffefc;
+      --card-bg: #ffffff;
+      --display-bg: #f9f9ff;
+      --text-color: #333;
+      --button-bg: #fefefe;
+      --accent-pink: #ffb6c1;
+      --accent-yellow: #ffe066;
+      --accent-cyan: #a0e7e5;
+      --equal-green: #b2f2bb;
+      --clear-red: #ff9999;
+      --function-purple: #d8b4f8;
+      --hover-bg: #fafafa;
+      --history-bg: #f8f9fa;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --border-radius: 12px;
+    }
+
+    body.dark-mode {
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --display-bg: #2a2a2a;
+      --text-color: #fff;
+      --button-bg: #2c2c2c;
+      --accent-pink: #ff6ec7;
+      --accent-yellow: #ffd43b;
+      --accent-cyan: #00c9c8;
+      --equal-green: #4caf50;
+      --clear-red: #f44336;
+      --function-purple: #ab47bc;
+      --hover-bg: #3a3a3a;
+      --history-bg: #262626;
+      --shadow: rgba(255, 255, 255, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: all 0.3s ease-in-out;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .logo {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 40px;
+      height: 40px;
+      animation: floatLogo 3s ease-in-out infinite;
+      z-index: 10;
+    }
+
+    @keyframes floatLogo {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-color);
+      z-index: 10;
+    }
+
+    .calculator-container {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .calculator {
+      background: var(--card-bg);
+      border-radius: 30px;
+      padding: 30px;
+      box-shadow: 0 15px 35px var(--shadow);
+      transform-style: preserve-3d;
+      position: relative;
+      animation: popIn 0.6s ease-out forwards;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .title {
+      text-align: center;
+      font-weight: 700;
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: var(--text-color);
+    }
+
+    .display {
+      width: 100%;
+      height: 60px;
+      background: var(--display-bg);
+      border: none;
+      border-radius: var(--border-radius);
+      text-align: right;
+      padding: 18px;
+      font-size: 26px;
+      margin-bottom: 20px;
+      color: var(--text-color);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .menu, .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    button {
+      padding: 18px;
+      font-size: 18px;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      background: var(--button-bg);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+      position: relative;
+      overflow: hidden;
+      font-weight: 600;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      background: var(--hover-bg);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .pink { background: var(--accent-pink); color: white; }
+    .yellow { background: var(--accent-yellow); color: white; }
+    .cyan { background: var(--accent-cyan); color: #222; }
+    .green { background: var(--equal-green); color: white; }
+    .red { background: var(--clear-red); color: white; }
+    .purple { background: var(--function-purple); color: white; }
+
+    .history {
+      margin-top: 20px;
+      max-height: 120px;
+      overflow-y: auto;
+      background: var(--history-bg);
+      padding: 12px;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+    }
+
+    .history h4 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+    }
+
+    .history-item {
+      cursor: pointer;
+      padding: 5px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      transition: background 0.2s;
+    }
+
+    .history-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #aaa;
+      width: 100%;
+      font-weight: bold;
+    }
+
+    .ripple {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(0);
+      animation: rippleAnim 0.6s linear;
+    }
+
+    @keyframes rippleAnim {
+      to {
+        transform: scale(10);
+        opacity: 0;
+      }
+    }
+
+    /* Special Effects for Easter Eggs */
+    .special-message {
+      font-size: 18px;
+      text-align: center;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+      background: linear-gradient(45deg, #ff6ec7, #ff99c8);
+      color: white;
+      animation: fadeInUp 1s ease-out;
+      box-shadow: 0 4px 15px rgba(255, 110, 199, 0.3);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .heart {
+      display: inline-block;
+      animation: heartBeat 1s infinite;
+      font-size: 20px;
+      color: red;
+    }
+
+    @keyframes heartBeat {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.5); }
+      100% { transform: scale(1); }
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: sparkleAnim 1s ease-out forwards;
+    }
+
+    @keyframes sparkleAnim {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(5);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <img src="https://files.catbox.moe/jrlw72" class="logo" alt="Senka Logo">
+
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">🌓</button>
+
+  <div class="calculator-container">
+    <div class="calculator">
+      <div class="title">Senka Calculator</div>
+      <input type="text" id="display" class="display" disabled />
+
+      <div class="menu">
+        <button class="purple" onclick="toggleSign()">±</button>
+        <button class="yellow" onclick="percent()">%</button>
+        <button class="cyan" onclick="square()">x²</button>
+        <button class="pink" onclick="sqrt()">√</button>
+      </div>
+
+      <div class="buttons">
+        <button onclick="appendValue('7')">7</button>
+        <button onclick="appendValue('8')">8</button>
+        <button onclick="appendValue('9')">9</button>
+        <button class="pink" onclick="appendValue('/')">÷</button>
+
+        <button onclick="appendValue('4')">4</button>
+        <button onclick="appendValue('5')">5</button>
+        <button onclick="appendValue('6')">6</button>
+        <button class="pink" onclick="appendValue('*')">×</button>
+
+        <button onclick="appendValue('1')">1</button>
+        <button onclick="appendValue('2')">2</button>
+        <button onclick="appendValue('3')">3</button>
+        <button class="pink" onclick="appendValue('-')">−</button>
+
+        <button onclick="appendValue('0')">0</button>
+        <button onclick="appendValue('.')">.</button>
+        <button class="green" onclick="calculate()">=</button>
+        <button class="pink" onclick="appendValue('+')">+</button>
+
+        <button class="red" onclick="clearDisplay()">C</button>
+      </div>
+
+      <div class="history">
+        <h4>Riwayat</h4>
+        <div id="historyList"></div>
+      </div>
+
+      <div class="footer">
+        Senka•KZA ❤️
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const display = document.getElementById("display");
+    let history = [];
+
+    function appendValue(value) {
+      addRipple(event);
+      display.value += value;
+    }
+
+    function calculate() {
+      try {
+        const input = display.value;
+
+        // Easter Egg 1: special message for 010+000
+        if (input === "010+000") {
+          display.value = "I Love u 💖";
+          showSpecialMessage("I Love u 💖", true);
+          return;
+        }
+
+        // Easter Egg 2: special message for 888+999
+        if (input === "888+999") {
+          display.value = "Halo Yang Mulia Tercantik Dan Ku Sayangi 💖";
+          showSpecialMessage("Halo Yang Mulia Tercantik Dan Ku Sayangi 💖", true);
+          return;
+        }
+
+        const result = eval(input.replace(/×/g, '*').replace(/÷/g, '/'));
+        history.push(`${input} = ${result}`);
+        updateHistory();
+        display.value = result;
+        addRipple(event);
+      } catch (e) {
+        display.value = "Error";
+      }
+    }
+
+    function clearDisplay() {
+      display.value = "";
+      addRipple(event);
+    }
+
+    function percent() {
+      if (display.value !== '') {
+        display.value = parseFloat(display.value) / 100;
+        addRipple(event);
+      }
+    }
+
+    function toggleSign() {
+      if (display.value !== '') {
+        display.value = -parseFloat(display.value);
+        addRipple(event);
+      }
+    }
+
+    function square() {
+      if (display.value !== '') {
+        display.value = Math.pow(parseFloat(display.value), 2);
+        addRipple(event);
+      }
+    }
+
+    function sqrt() {
+      if (display.value !== '' && parseFloat(display.value) >= 0) {
+        display.value = Math.sqrt(parseFloat(display.value));
+        addRipple(event);
+      } else {
+        display.value = "Error";
+      }
+    }
+
+    function updateHistory() {
+      const list = document.getElementById("historyList");
+      list.innerHTML = history.map(item => `<div class="history-item" onclick="loadFromHistory('${item.split(" = ")[0]}')">${item}</div>`).join("");
+    }
+
+    function loadFromHistory(expr) {
+      display.value = expr;
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark-mode");
+      addRipple(event);
+    }
+
+    function addRipple(e) {
+      const btn = e.target;
+      const circle = document.createElement("span");
+      const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+      const radius = diameter / 2;
+
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${e.offsetX - radius}px`;
+      circle.style.top = `${e.offsetY - radius}px`;
+      circle.classList.add("ripple");
+
+      const ripple = btn.getElementsByClassName("ripple")[0];
+      if (ripple) ripple.remove();
+
+      btn.appendChild(circle);
+
+      setTimeout(() => {
+        circle.remove();
+      }, 600);
+    }
+
+    function showSpecialMessage(message, withEffects = false) {
+      // Create message element
+      const messageEl = document.createElement("div");
+      messageEl.className = "special-message";
+      messageEl.textContent = message;
+      
+      // Add hearts if requested
+      if (withEffects) {
+        messageEl.innerHTML = message;
+      }
+      
+      // Add to display container
+      const container = document.querySelector(".calculator");
+      container.appendChild(messageEl);
+      
+      // Add sparkles
+      if (withEffects) {
+        createSparkles();
+      }
+      
+      // Remove after 5 seconds
+      setTimeout(() => {
+        messageEl.remove();
+      }, 5000);
+    }
+    
+    function createSparkles() {
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+          const sparkle = document.createElement("div");
+          sparkle.className = "sparkle";
+          sparkle.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
+          
+          // Random position
+          sparkle.style.left = `${Math.random() * 100}%`;
+          sparkle.style.top = `${Math.random() * 100}%`;
+          
+          document.body.appendChild(sparkle);
+          
+          // Remove after animation
+          setTimeout(() => {
+            sparkle.remove();
+          }, 1000);
+        }, i * 100);
+      }
+    }
+
+    // Keyboard support
+    document.addEventListener("keydown", e => {
+      const key = e.key;
+      if (!isNaN(key) || ['+', '-', '*', '/', '.'].includes(key)) {
+        e.preventDefault(); // prevent browser zoom or other actions
+        appendValue(key);
+      } else if (key === "Enter") {
+        e.preventDefault();
+        calculate();
+      } else if (key === "Backspace") {
+        e.preventDefault();
+        display.value = display.value.slice(0, -1);
+      } else if (key.toLowerCase() === "c") {
+        e.preventDefault();
+        clearDisplay();
+      }
+    });
+  </script>
+</body>
+</html>
